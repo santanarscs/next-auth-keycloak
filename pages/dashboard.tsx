@@ -1,29 +1,22 @@
+import { useSession, signOut } from "next-auth/react"
 
-import { GetServerSideProps } from 'next'
-import { getSession, useSession, signOut } from "next-auth/client"
-import { withSSRAuth } from "../util/withSSRAuth"
+export default function Dashboard() {
+  const { data: session, status } = useSession({required: true})
+	const loading = status === 'loading'
 
-export default function Dashboard({user}: any) {
-  const [ session ] = useSession()
+  if (typeof window !== 'undefined' && loading) return null
+
+  if (!session) { return  <h1>Acesso negado</h1> }
+
   return (
     <>
       <h1>Dashboard</h1>
       <div>{JSON.stringify(session, null, 2)}</div>
       <br />
-      <div>{JSON.stringify(user, null, 2)}</div>
       <div>
-        <button onClick={() => signOut()}>Sair</button>
+        <button onClick={() => signOut({callbackUrl: 'http://localhost:3003'})}>Sair</button>
       </div>
     </>
   )
 }
 
-export const getServerSideProps: GetServerSideProps = withSSRAuth(async (ctx) => {
-  const { req } = ctx
-  const session = await getSession({req})
-  return {
-    props: {
-      user: session?.user
-    }
-  }
-})
